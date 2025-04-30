@@ -2,7 +2,7 @@ use std::any::Any;
 use std::mem;
 
 use memflow::prelude::v1::*;
-use memflow_vdm::{PhysicalMemory, *};
+use memflow_vdm::{PhysicalMemory, *, load_driver};
 
 use windows::core::{s, Result};
 use windows::Win32::Foundation::{CloseHandle, GENERIC_READ, GENERIC_WRITE};
@@ -36,6 +36,13 @@ struct WinIoDriver {
 
 impl WinIoDriver {
     fn open() -> Result<Self> {
+        let driver_path = std::env::current_exe()?.parent().unwrap().join("winio64.sys");
+        let driver_loaded = unsafe { load_driver(driver_path,"mewin", ) };
+
+        if driver_loaded.is_err() {
+            println!("Failed to load driver: {:?}", driver_loaded.err());
+        }
+
         let handle = unsafe {
             CreateFileA(
                 s!(r"\\.\WinIo"),
